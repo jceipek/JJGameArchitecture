@@ -39,6 +39,36 @@ class BasicTimer:
             
         return elapsedTime
 
+class HourGlass:
+    """
+    An hour glass timer which makes it easy to determine when a set
+    amount of time has passed.
+    """
+    
+    def __init__(self):
+        
+        self.startTime = mostAccurateTime()
+        self.timeToRun = 0
+        
+    def reset(self):
+        """
+        Reset time of last call to current time, thus returning the
+        difference between the current time and the last call to zero.
+        """
+        self.startTime = mostAccurateTime()
+    
+    def start(self, timeToRun):
+        """
+        Starts the hour glass and sets the amount of time for it to run.
+        """
+        
+        self.startTime = mostAccurateTime()
+        self.timeToRun = timeToRun
+    
+    def hasFinished(self):
+        """Returns True if the set amount of time has passed."""
+        return ( mostAccurateTime() - self.startTime ) >= self.timeToRun
+
 class StopWatch:
     """
     A stop watch which records time differences between a "start" and
