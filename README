@@ -1,0 +1,5 @@
+JJGameArchitecture is an experiment in creating a reusable computer game architecture.
+
+It's central theme is a server/client communication system in which only the server is trusted with private information.
+
+The architecture also uses an event system in which each event has a time stamp at which it is executed. In this way, the server and clients can always be synchronized.
