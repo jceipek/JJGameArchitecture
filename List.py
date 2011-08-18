@@ -18,7 +18,7 @@ class SortedList(list):
 			middleIndex = int( (bottomIndex + topIndex)/2 )	
 
 		self.insert( middleIndex, newElement )
-		
+
 class SortCacheList(list):
 	
 	def __init__(self):
@@ -36,3 +36,12 @@ class SortCacheList(list):
 
 		self.isSorted = False
 		super(SortCacheList, self).append(item)
+    
+"""
+>>> def heapsort(iterable):
+...     'Equivalent to sorted(iterable)'
+...     h = []
+...     for value in iterable:
+...         heappush(h, value)
+...     return [heappop(h) for i in range(len(h))]
+"""

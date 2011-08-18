@@ -1,3 +1,25 @@
+class ProxyableObjectCreator:
+    
+    def __init__(self):
+        
+        self.numberOfObjectsCreated = 0
+        self.IDsToObjects = dict()
+    
+    def registerObject(self, obj):
+        
+        ID = self.numberOfObjectsCreated
+        self.IDsToObjects[ID] = obj
+        
+        self.numberOfObjectsCreated+=1
+        
+        return ID
+    
+    def unregisterObject(self, obj):
+        
+        ID = obj._ID
+        if ID in self.IDsToObjects:
+            del self.IDsToObjects[ID]
+
 class ProxyableObject:
     """
     This class should be the parent class of all classes which are to
@@ -11,6 +33,9 @@ class ProxyableObject:
     # class dictionary which stores the attributes which will be
     # included in proxies
     __proxyAttrs__ = {}
+    # class dictionary which stores the attributes which will be
+    # accessible to proxies
+    __proxyMethods__ = {}
     
     def __init__(self):
         
@@ -46,6 +71,14 @@ class ProxyableObject:
         included in the proxy object returned by getProxyObject.
         """
         cls.__proxyAttrs__[name] = True
+        
+    @classmethod
+    def registerMethodForProxy(cls, name):
+        """
+        Adds a method to a dictionary of methods which will be
+        accessible to the proxy object returned by getProxyObject.
+        """
+        cls.__proxyMethods__[name] = True
     
     def getProxyObject(self):
         """
@@ -60,6 +93,19 @@ class ProxyableObject:
         """
         return ProxyObjectChange(self)
 
+class NetworkObject(ProxyableObject):
+    """
+    Adds a private ID attribute to all instances which can be used to
+    connect proxies on clients to objects on the server.
+    """
+    
+    ProxyableObject.registerAttributeForProxy('_id')
+    
+    def __init__(self, creator):
+        
+        ProxyableObject.__init__(self)
+        self._id = creator.registerObject(self)
+
 class ProxyObject:
     """
     Proxy representation of an object on the server.  This object
@@ -68,13 +114,23 @@ class ProxyObject:
     
     def __init__(self, obj):
         
-        # name of the class of the obj
-        self.name = obj.__class__.__name__
+        # class of the object which this instance is a proxy of
+        self.__parentClass = obj.__class__
         
         # add attributes from the obj to the proxy representation
         for attr in obj.__proxyAttrs__.iterkeys():
              self.__dict__[attr] = obj.__dict__[attr]
-             
+    
+    def getProxyClass(self):
+        return self.__parentClass
+    
+    def __getattr__(self, name):
+        proxyObjCls = self.getProxyClass()
+        if name in proxyObjCls.__proxyMethods__:
+            return proxyObjCls.__dict__[name].__get__(self,self.__class__)
+        else:
+            raise AttributeError
+    
     def updateWithChanges(self, proxyObjChange):
         """
         Update a ProxyObject with a ProxyObjectChange.
@@ -116,14 +172,15 @@ class ProxyObjectChange:
 
 if __name__ == '__main__':
 
-    class TestObject(ProxyableObject):
+    class TestObject(NetworkObject):
         
-        ProxyableObject.registerAttributeForProxy('hp')
-        ProxyableObject.registerAttributeForProxy('money')
+        NetworkObject.registerAttributeForProxy('hp')
+        NetworkObject.registerAttributeForProxy('money')
+        NetworkObject.registerMethodForProxy('damage')
         
-        def __init__(self,hp,money):
+        def __init__(self,hp,money,creator):
             
-            ProxyableObject.__init__(self)
+            NetworkObject.__init__(self,creator)
             
             self.hp = hp
             self.money = money
@@ -132,8 +189,12 @@ if __name__ == '__main__':
         def damage(self,change=1):
             self.hp-=1
     
-    b = TestObject(20,100)
+    creator = ProxyableObjectCreator()
+    
+    b = TestObject(20,100,creator)
     bp = b.getProxyObject()
+    
+    print 'Proxy damage func: ',bp.damage
     
     b.damage()
     b.damage()
