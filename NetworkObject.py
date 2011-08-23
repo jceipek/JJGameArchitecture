@@ -16,7 +16,7 @@ class ProxyableObjectCreator:
     
     def unregisterObject(self, obj):
         
-        ID = obj._ID
+        ID = obj.getID()
         if ID in self.IDsToObjects:
             del self.IDsToObjects[ID]
 
@@ -106,6 +106,9 @@ class NetworkObject(ProxyableObject):
         ProxyableObject.__init__(self)
         self._id = creator.registerObject(self)
 
+    def getID():
+        return self._id
+
 class ProxyObject:
     """
     Proxy representation of an object on the server.  This object
@@ -187,7 +190,11 @@ if __name__ == '__main__':
             self.secret = 'hi'
 
         def damage(self,change=1):
+            print "Damage"
             self.hp-=1
+    
+        def killer(self):
+            print "Here's Johnny!"
     
     creator = ProxyableObjectCreator()
     
@@ -204,9 +211,12 @@ if __name__ == '__main__':
     print delta.getChanges()
     bp.updateWithChanges(delta)
     print bp.__dict__
-
+    
     b.damage()
     delta=b.getProxyObjectChange()
     print delta.getChanges()
     bp.updateWithChanges(delta)
     print bp.__dict__
+
+    print b.hp
+    print bp.hp
