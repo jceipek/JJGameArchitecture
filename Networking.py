@@ -210,6 +210,8 @@ class Server(NetworkEntity):
             Deletes the Server
             """
         
+        print "Call del on Server ",self
+        
         self.connecting=False
         try:
             del(self.socketThreads)
@@ -295,7 +297,7 @@ class Client(NetworkEntity):
             Deletes the client
             """
         
-        print 'Deleting Client'
+        print "Call del on Client ",self
         try:
             self.socketThread.__del__()
         except KeyboardInterrupt:
@@ -396,12 +398,14 @@ class SocketThread(object):
             Deletes the SocketThread and lets the network know that the
             SocketThread has been deleted
             """
+        
+        print "Call del on SocketThread ",self
+        
         self.alive=False
         self.parent.removeSocketThread(self)
         
         #tell the entity on the other side of the network to delete the socket
         try:
-            print("Socket Thread ",self," is closing!")
             self.write(self.parent.CLOSE_MESSAGE)
         except:
             pass
