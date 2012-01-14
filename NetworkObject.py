@@ -16,7 +16,7 @@ class ProxyableObjectCreator:
     
     def unregisterObject(self, obj):
         
-        ID = obj._ID
+        ID = obj._id
         if ID in self.IDsToObjects:
             del self.IDsToObjects[ID]
 
@@ -50,7 +50,7 @@ class ProxyableObject:
         __changedAttrs__ dictionary.
         """
 
-        if name in self.__proxyAttrs__:
+        if name in self.__class__.__proxyAttrs__:
             self.__changedAttrs__[name] = value
 
         # normal __setattr__ behavior
@@ -99,12 +99,16 @@ class NetworkObject(ProxyableObject):
     connect proxies on clients to objects on the server.
     """
     
-    ProxyableObject.registerAttributeForProxy('_id')
-    
     def __init__(self, creator):
         
         ProxyableObject.__init__(self)
         self._id = creator.registerObject(self)
+        
+    def getID(self):
+        
+        return self._id
+        
+NetworkObject.registerAttributeForProxy('_id')
 
 class ProxyObject:
     """
@@ -174,10 +178,6 @@ if __name__ == '__main__':
 
     class TestObject(NetworkObject):
         
-        NetworkObject.registerAttributeForProxy('hp')
-        NetworkObject.registerAttributeForProxy('money')
-        NetworkObject.registerMethodForProxy('damage')
-        
         def __init__(self,hp,money,creator):
             
             NetworkObject.__init__(self,creator)
@@ -188,12 +188,18 @@ if __name__ == '__main__':
 
         def damage(self,change=1):
             self.hp-=1
+
+    TestObject.registerAttributeForProxy('hp')
+    TestObject.registerAttributeForProxy('money')
+    TestObject.registerMethodForProxy('damage')
     
+    #TestObject.registerMethodForProxy('damage')
     creator = ProxyableObjectCreator()
     
     b = TestObject(20,100,creator)
+    print TestObject.__mro__
     bp = b.getProxyObject()
-    
+
     print 'Proxy damage func: ',bp.damage
     
     b.damage()
@@ -210,3 +216,5 @@ if __name__ == '__main__':
     print delta.getChanges()
     bp.updateWithChanges(delta)
     print bp.__dict__
+
+    print ProxyableObject.__proxyAttrs__ is TestObject.__proxyAttrs__
