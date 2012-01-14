@@ -16,7 +16,7 @@ class ProxyableObjectCreator:
     
     def unregisterObject(self, obj):
         
-        ID = obj._id
+        ID = obj.getID()
         if ID in self.IDsToObjects:
             del self.IDsToObjects[ID]
 
@@ -187,6 +187,7 @@ if __name__ == '__main__':
             self.secret = 'hi'
 
         def damage(self,change=1):
+            print "Damage"
             self.hp-=1
 
     TestObject.registerAttributeForProxy('hp')
@@ -210,7 +211,7 @@ if __name__ == '__main__':
     print delta.getChanges()
     bp.updateWithChanges(delta)
     print bp.__dict__
-
+    
     b.damage()
     delta=b.getProxyObjectChange()
     print delta.getChanges()
